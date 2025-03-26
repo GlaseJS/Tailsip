@@ -1,0 +1,14 @@
+{
+  "include": [
+    "**/*.ts"
+, "models/user.model.ts"  ],
+  "compilerOptions": {
+    "noEmit": true,
+    "strict": true,
+    "allowArbitraryExtensions": true,
+
+    "typeRoots": [
+      "./node_modules/tailsip/tsp"
+    ],
+  }
+}

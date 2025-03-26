@@ -1,0 +1,23 @@
+{
+  "include": [
+    "src/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules", "test/**/*"
+  ],
+  "compilerOptions": {
+    "module": "ESNext",
+    "outDir": "./",
+    "rootDir": "src",
+
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "skipLibCheck": true,
+    "declaration": true,
+
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+  }
+}
