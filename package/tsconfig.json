@@ -1,23 +1,31 @@
 {
   "include": [
-    "src/**/*.ts"
+    "src/**/*.ts", "types", "runtime"
   ],
   "exclude": [
-    "node_modules", "test/**/*"
+    "node_modules", "test/**/*", "runtime"
   ],
   "compilerOptions": {
-    "module": "ESNext",
-    "outDir": "./",
+    "module": "NodeNext",
+    "outDir": "build",
     "rootDir": "src",
+    "strict": true,
 
     "target": "ES2022",
     "lib": ["ES2022"],
     "skipLibCheck": true,
     "declaration": true,
 
-    "moduleResolution": "bundler",
+    "moduleResolution": "nodenext",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "esModuleInterop": true,
+
+    "typeRoots": [
+      "node_modules/@types", "types"
+    ],
+    "paths": {
+      "tailsip": [ "./src/" ]
+    }
   }
 }

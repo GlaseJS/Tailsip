@@ -1,8 +1,6 @@
 
 
 
-import { App } from "./app";
-
 export type Options = {
   mode?: "development" | "production",
   format?: (type: string, message: string) => string,
@@ -28,15 +26,19 @@ export type Returns = (context: string) => {
   error: (error: Error) => void | Promise<void>;
 }
 
-export type Component = (app: App, opts: Required<Options>) => Returns;
+export type Component = (opts: Required<Options>) => Returns;
 
-declare module "./app" {
+declare module "../core/interfaces.js" {
   interface Config {
     logger: Options
   }
 
   interface App {
     logger?: Returns
+  }
+
+  interface Overrides {
+    logger?: Component
   }
 }
 

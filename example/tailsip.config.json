@@ -1,0 +1,5 @@
+{
+  "tailsip": {
+    "routesFolder": "build/routes"
+  }
+}

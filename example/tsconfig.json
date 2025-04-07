@@ -1,14 +1,29 @@
 {
+  "exclude": [
+    "build"
+  ],
   "include": [
-    "**/*.ts"
-, "models/user.model.ts"  ],
+    "src/**/*.ts",
+    "node_modules/tailsip/**/*.d.ts"
+  ],
   "compilerOptions": {
-    "noEmit": true,
+    "module": "NodeNext",
+    "outDir": "build",
+    "rootDir": "src",
     "strict": true,
+
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "skipLibCheck": true,
+
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
     "allowArbitraryExtensions": true,
 
     "typeRoots": [
-      "./node_modules/tailsip/tsp"
-    ],
+      "node_modules/tailsip/types"
+    ]
   }
 }
