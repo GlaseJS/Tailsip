@@ -1,8 +1,11 @@
-export type Options = {};
+export type Options = {
+    static: string;
+};
 export declare const DefaultOptions: Required<Options>;
 export type Returns = {
     GET: (ctx: Context) => Promise<Wrapper>;
     POST: (ctx: Context) => Promise<Wrapper>;
+    FILE: (ctx: Context) => Promise<Wrapper>;
 };
 export type Component = (opts: Options) => Returns;
 declare module "../core/interfaces.js" {

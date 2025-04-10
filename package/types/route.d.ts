@@ -16,9 +16,13 @@ declare type JsonObject = { [x: string]: JsonValue };
 
 
 declare type TitleHandler = string;
-declare type MetaHandler = {
-  [x: string]: string
-}
+declare type MetaHandler = (
+  { type: "script", src: string } |
+  { type: "link", rel: string, href: string, format?: string, as?: string } |
+  { type: "meta", name: string, content: string } |
+  { type: "charset", value: string }
+)[];
+declare type LangHandler = (ctx: Context) => string;
 
 
 
@@ -90,6 +94,8 @@ declare type RouteModule = {
   /** Adds or changes metas for the current page. Applied from closer to deepest from root. **/
   meta?: MetaHandler,
 
+  lang?: LangHandler,
+
   /** Defines a method to execute on GET calls on this route. **/
   loader?: APIHandler,
   /** Defines an action to execute on POST calls on this route. **/
@@ -102,7 +108,7 @@ declare type RouteModule = {
 
   /** Defines a visual element (string) to render for this route. If defined, the route is treated as a view renderer. **/
   view?: ViewHandler,
-  /** Defines styles in a CSS-in-JS to apply for this page. **/
+  /** Defines styles to apply for this page. **/
   style?: StyleHandler,
   /** Defines events to answer to on the client side. Client-side events are page-specific. **/
   client?: ClientHandler,

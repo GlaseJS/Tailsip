@@ -5,6 +5,11 @@ export declare class Context {
     headers: Headers;
     body?: JsonObject | undefined;
     constructor(request: IncomingMessage, response: ServerResponse, headers: Headers, body?: JsonObject | undefined);
+    url: URL;
+    title?: TitleHandler;
+    meta: MetaHandler;
+    lang?: string;
+    fileType?: string;
     pathname: string;
     params: URLSearchParams;
     routes: RouteModule[];

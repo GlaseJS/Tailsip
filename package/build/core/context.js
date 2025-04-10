@@ -8,14 +8,24 @@ export class Context {
         this.response = response;
         this.headers = headers;
         this.body = body;
-        const url = new URL(`${App.address}/${request.url || ""}`);
-        this.pathname = url.pathname;
-        this.params = url.searchParams;
+        this.url = new URL(`${App.address}${request.url || ""}`);
+        this.pathname = this.url.pathname;
+        this.params = this.url.searchParams;
+        const file = this.pathname.match(/(.*)\.([0-9a-z]{1,4})$/i);
+        if (file) {
+            this.pathname = file[1];
+            this.fileType = file[2];
+        }
         // We preprend an empty route so that the root of the folder always gets processed first.
-        const [routes, query] = this.MatchRoute(url.pathname.split("/").filter(Boolean));
+        const [routes, query] = this.MatchRoute(this.pathname.split("/").filter(Boolean));
         this.routes = routes;
         this.query = query;
     }
+    url;
+    title;
+    meta = [];
+    lang;
+    fileType;
     pathname;
     params;
     routes;

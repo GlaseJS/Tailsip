@@ -81,8 +81,11 @@ export const Host: _.Component = (opts) => {
      */
     else if (request.method == "GET")
     {
-      return resolve(await App.router!.GET(new Context(request, response, headers)));
-      // TODO: Static resolution
+      const context = new Context(request, response, headers);
+      const res = await App.router!.FILE(context);
+
+      if (res.type != "Void") return resolve(res);
+      return resolve(await App.router!.GET(context));
     }
     /**
      * POST

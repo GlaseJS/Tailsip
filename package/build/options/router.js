@@ -1,1 +1,3 @@
-export const DefaultOptions = {};
+export const DefaultOptions = {
+    static: "public"
+};
