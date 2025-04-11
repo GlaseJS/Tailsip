@@ -18,7 +18,7 @@ export const Host = (opts) => {
                 const stream = wrap.resolve();
                 stream.pipe(response);
                 stream.on("end", () => {
-                    end(200);
+                    response.end();
                 });
             }
             else if (wrap.type == "Json") {

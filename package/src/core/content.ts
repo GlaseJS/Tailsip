@@ -43,7 +43,7 @@ const fileWrapper = (path: string) => ({
   content: path,
   toString: () => path,
   toJson:   () => ({ file: path }) as JsonObject,
-  resolve:  () => createReadStream(`${process.cwd()}/${path}`)
+  resolve:  () => createReadStream(`${process.cwd()}/${path}`.replaceAll("..", ""))
 });
 global.$file = fileWrapper;
 

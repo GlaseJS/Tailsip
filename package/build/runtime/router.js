@@ -78,7 +78,7 @@ export const Router = (opts) => {
                     return $text(route.client.toString());
             }
             // Serve static files
-            const file = `${process.cwd}/${Config.router.static}/${ctx.url.pathname.replaceAll("..", "")}`;
+            const file = `${Config.router.static}/${ctx.url.pathname}`;
             if (fs.existsSync(file))
                 return $file(file);
             return $void;
