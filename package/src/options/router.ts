@@ -2,11 +2,13 @@
 
 
 export type Options = {
-  static: string
+  routesFolder: string,
+  staticFolder: string
 }
 
 export const DefaultOptions: Required<Options> = {
-  static: "public"
+  routesFolder: "routes",
+  staticFolder: "public"
 } as any;
 
 export type Returns = {
