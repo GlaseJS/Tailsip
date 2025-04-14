@@ -10,55 +10,95 @@ import { Host } from "../runtime/host.js";
 import { App as Interface } from "./interfaces.js";
 
 export interface App extends Interface {
-  routes: RoutePart;
+  routes: { [x: string]: RouteModule };
+  components: { [x: string]: ComponentModule };
   address: string;
 }
 export class App
 {
-  constructor() {
-  
-  }
+  /** Defines wrapper for certain user provided methods */
+  Register = ({
+    View: (path: string, md: ComponentModule) => ({
 
-  async Compile(folder: string)
+      view: (ctx: Context, next: () => string) =>
+      {
+        const id = ctx.GenerateElementId();
+        const fullPath = md.scoped ? `${path}#${id}` : path;
+
+        if (md.style)  ctx.meta.push({ type: "link", rel: "stylesheet", href: `${fullPath}.css` });
+        if (md.client) ctx.meta.push({ type: "script", src: `${fullPath}.js` });
+        return md.view?.(ctx, next).replace(">", `id="${id}">`);
+      },
+      client:
+        (id: string) =>
+          md.client?.toString().replace(/(["'])\$:([a-zA-Z]+)\1/gm, (_, quote, event) => `"#${id}:${event}"`),
+      style:
+        (id: string) => md.scoped ?
+          (ctx: Context) => md.style?.(ctx).replace(/^(.*{\s*)$/gm, (_, line) => `#${id} ${line}`) :
+          md.style
+      
+    }),
+    Route: (path: string, md: RouteModule) => {
+
+      return ({
+        ...md, ...this.Register.View(`view:${path}`, md)
+      })
+
+    },
+    Component: (path: string, md: ComponentModule) => {
+      return ({
+        ...md, ...this.Register.View(`component:${path}`, md)
+      })
+    }
+  })
+
+  /** Load and Compile modules**/
+  async Compile(folder: string, route: string)
   {
     const content = readdirSync(folder);
-    let cache: RoutePart = {};
 
     for (const file of content)
     {
+
       const fullPath = `${folder}/${file}`;
       const stats = statSync(fullPath);
 
       const isSplat = file.startsWith("$");
-      const base = file.endsWith(".js") ? file.slice(0, -3) : file;
+      let base = file.endsWith(".js") ? file.slice(0, -3) : file;
+
+      const componentRegex = base.match(/^(.*)\.components?$/);
+      const isComponent = !!componentRegex;
+      base = componentRegex?.[1] || base;
+
       const name = isSplat ? "$" : base;
+      const splatName = isSplat ? base.slice(1) : "";
+
+      const ownRoute = `${route}/${name}`;
 
       if (stats.isDirectory())
       {
-        cache = {
-          ...cache,
-          [name]: {
-            ...await this.Compile(fullPath),
-            _splat: name, 
-          } as RoutePart
-        };
+        await this.Compile(fullPath, ownRoute);
+
+        if (isSplat)
+        {
+          const layoutPath = `${ownRoute}/$/_layout`;
+          if (!this.routes[layoutPath]) this.routes[layoutPath] = {};
+
+          this.routes[layoutPath]._splat = splatName;
+        }
+      }
+      else if (!isComponent)
+      {
+        const routeModule = await import(`file://${process.cwd()}/${fullPath}`) as RouteModule;
+        routeModule._splat = splatName;
+        this.routes[ownRoute] = routeModule;
       }
       else
       {
-        const routeModule = {
-          ...await import(`file://${process.cwd()}/${fullPath}`) as RouteModule,
-          type: "Route" as const
-        };
-
-        routeModule._splat = isSplat ? base.slice(1) : "";
-        cache = {
-          ...cache,
-          [name]: routeModule
-        };
+        const componentModule = await import(`file://${process.cwd()}/${fullPath}`) as ComponentModule;
+        this.components[ownRoute] = componentModule;
       }
     }
-
-    return cache;
   }
 }
 
@@ -68,7 +108,7 @@ declare global {
 }
 
 const app = new App();
-app.routes = await app.Compile(Config.tailsip.routesFolder);
+await app.Compile(Config.tailsip.routesFolder, "");
 
 global.App = app;
 global.App.logger = Overrides.logger?.(Config.logger) || Logger(Config.logger);

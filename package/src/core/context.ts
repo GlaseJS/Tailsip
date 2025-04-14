@@ -1,5 +1,7 @@
 
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { obfuscate } from "./obfuscate.js";
+
 
 export class Context
 {
@@ -42,7 +44,8 @@ export class Context
 
   public data = {};
 
-  
+  private componentsCount = 0;
+  public GenerateElementId = () => `$${obfuscate(this.componentsCount++)}`;
 
   MatchRoute(path: string[]): [RouteModule[], {[x: string]: string}]
   {
