@@ -13,14 +13,12 @@ declare type JsonObject = { [x: string]: JsonValue };
 
 
 
-declare type TitleHandler = string;
 declare type MetaHandler = (
   { type: "script", src: string } |
   { type: "link", rel: string, href: string, format?: string, as?: string } |
   { type: "meta", name: string, content: string } |
   { type: "charset", value: string }
 )[];
-declare type LangHandler = (ctx: Context) => string;
 
 
 

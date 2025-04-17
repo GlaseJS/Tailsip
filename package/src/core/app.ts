@@ -3,7 +3,7 @@
 
 
 import { Logger } from "../runtime/logger.js";
-import { Router } from "../runtime/router.js";
+import { Router } from "../runtime/router/index.js";
 import { Host } from "../runtime/host.js";
 
 import { App as Interface } from "./interfaces.js";

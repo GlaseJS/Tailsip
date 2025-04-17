@@ -81,11 +81,10 @@ export const Host: _.Component = (opts) => {
      */
     else if (request.method == "GET")
     {
-      const context = new Context(request, response, headers);
-      const res = await App.router!.FILE(context);
+      const res = await App.router!.FILE([request, response, headers]);
 
       if (res.type != "Void") return resolve(res);
-      return resolve(await App.router!.GET(context));
+      return resolve(await App.router!.GET([request, response, headers]));
     }
     /**
      * POST
@@ -104,7 +103,7 @@ export const Host: _.Component = (opts) => {
       });
 
       request.on("end", async () => {
-        return resolve(await App.router!.POST(new Context(request, response, headers, JSON.parse(body))));
+        return resolve(await App.router!.POST([request, response, headers, JSON.parse(body)]));
       });
     }
     else

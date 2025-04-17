@@ -1,12 +1,7 @@
 
 
 declare type RouteModule = {
-  /** Changes the title for the rendered page. Deepest title definition is applied.**/
-  title?: TitleHandler,
-  /** Adds or changes metas for the current page. Applied from closer to deepest from root. **/
-  meta?: MetaHandler,
-
-  lang?: LangHandler,
+  type: "Route";
 
   /** Defines a method to execute on GET calls on this route. **/
   loader?: APIHandler,
@@ -29,16 +24,16 @@ declare type RouteModule = {
 
   /** Defines a replacement for various methods when they fail. **/
   error?: {
-    $: ErrorHandler<APIHandler>;
+    $?: ErrorHandler<APIHandler>;
     loader?: ErrorHandler<APIHandler>;
     action?: ErrorHandler<APIHandler>;
     view?:   ErrorHandler<ViewHandler>;
   },
 
-  /** - FRAMEWORK ONLY -
-   * After processing, splat routes are internally named "$", and a reference to their user-defined name is set here.
+  /**
+   * 
    **/
-  _splat?: string,
+  _splatName: string,
   /** - FRAMEWORK ONLY -
    * Once per route call, the framework internally assigns the current route value to this element.
    * Note that this is per-request specific, not route-object related.

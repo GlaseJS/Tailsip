@@ -1,3 +1,4 @@
 export const DefaultOptions = {
-    routesFolder: "routes"
+    idTokenLength: 8,
+    idTokenCacheSize: 200
 };

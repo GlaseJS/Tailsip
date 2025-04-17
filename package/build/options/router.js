@@ -1,3 +1,4 @@
 export const DefaultOptions = {
-    static: "public"
+    routesFolder: "routes",
+    staticFolder: "public"
 };

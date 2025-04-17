@@ -1,5 +1,5 @@
 
-
+import type { Context } from "../runtime/router/context.js";
 
 export type Options = {
   routesFolder: string,
@@ -12,9 +12,9 @@ export const DefaultOptions: Required<Options> = {
 } as any;
 
 export type Returns = {
-  GET: (ctx: Context) => Promise<Wrapper>;
-  POST: (ctx: Context) => Promise<Wrapper>;
-  FILE: (ctx: Context) => Promise<Wrapper>;
+  GET:  (ctx: ConstructorParameters<typeof Context>) => Promise<Wrapper>;
+  POST: (ctx: ConstructorParameters<typeof Context>) => Promise<Wrapper>;
+  FILE: (ctx: ConstructorParameters<typeof Context>) => Promise<Wrapper>;
 };
 
 export type Component = (opts: Options) => Returns;

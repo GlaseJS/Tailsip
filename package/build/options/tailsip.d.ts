@@ -1,5 +1,6 @@
 export type Options = {
-    routesFolder: string;
+    idTokenLength: number;
+    idTokenCacheSize: number;
 };
 export declare const DefaultOptions: Required<Options>;
 declare module "../core/interfaces.js" {
