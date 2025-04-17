@@ -23,11 +23,11 @@ const Register = ({
                 md.style : undefined
     }),
     Route: (route, md) => ({
-        ...md, ...Register.View(`route:${route}`, md),
+        ...md, ...Register.View(route, md),
         loader: md.loader ? [md.loader] : []
     }),
     Component: (route, md) => ({
-        ...md, ...Register.View(`component:${route}`, md)
+        ...md, ...Register.View(route, md)
     })
 });
 /** Load and Compile modules**/
