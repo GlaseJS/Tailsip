@@ -64,7 +64,6 @@ export const Router = (opts) => {
             }
             // Serve static files
             const file = `${Config.router.staticFolder}/${ctx.url.pathname}`;
-            console.log(Config);
             if (fs.existsSync(file))
                 return $file(file);
             return $void;
