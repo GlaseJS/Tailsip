@@ -8,15 +8,14 @@ export const obfuscate = (id: number) => {
   let hash = id;
   for (let i = 0; i < Config.tailsip.idTokenLength * 2; i++)
   {
-    hash = (hash ^ (hash >>> 3)) * 0x45d9f3b;
-    hash = hash & 0xffffffff;
+    hash = 678641 + (hash ^ (hash >>> 3)) * 394673 | 0;
   }
 
   const chars: string[] = [];
   for (let i = 0; i < Config.tailsip.idTokenLength; i++)
   {
-    chars.push(charset[hash % charset.length]);
-    hash = Math.floor(hash / charset.length);
+    chars.push(charset[Math.abs(hash % charset.length)] || charset[id % charset.length]);
+    hash = (hash * 31 + i * 97 + id) | 0;
   }
   
   return chars.join('');
