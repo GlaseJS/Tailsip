@@ -3,6 +3,7 @@
 
 import { Router as _ } from "../../options/index.js";
 import { Context } from "./context.js";
+import { client } from "./client.js"
 import fs from "node:fs";
 
 export const Router: _.Component = (opts) => {
@@ -33,21 +34,24 @@ export const Router: _.Component = (opts) => {
       {
         return $view(`
         <html${ctx.lang ? ` lang="${ctx.lang}"` : ""}>
-        <head>
-          ${ ctx.meta.map((meta => {
-            if (meta.type == "meta")
-              return `<meta name="${meta.name}" content="${meta.content}">\n`;
-            if (meta.type == "charset")
-              return `<meta charset="${meta.value}">\n`;
-            if (meta.type == "link")
-              return `<link rel="${meta.rel}" href="${meta.href}"${meta.format? ` type="${meta.format}"` : ""}${meta.as? ` as="${meta.as}"` : ""}>\n`;
-            if (meta.type == "script")
-              return `<script src="${meta.src}">\n`;
-          })) }
-        </head>
-        <body>
-          ${finalView}
-        </body>
+          <head>
+            <script src="/main.js"></script>
+            <link rel="stylesheet" href="/main.css">
+            ${ ctx.meta.map((meta => {
+              if (meta.type == "meta")
+                return `<meta name="${meta.name}" content="${meta.content}">`;
+              if (meta.type == "charset")
+                return `<meta charset="${meta.value}">`;
+              if (meta.type == "link")
+                return `<link rel="${meta.rel}" href="${meta.href}"${meta.format? ` type="${meta.format}"` : ""}${meta.as? ` as="${meta.as}"` : ""}>`;
+              if (meta.type == "script")
+                return `<script src="${meta.src}"></script>`;
+              return '';
+            })).join("") }
+          </head>
+          <body>
+            ${finalView}
+          </body>
         </html>
         `);
       }
@@ -60,14 +64,12 @@ export const Router: _.Component = (opts) => {
       if (!ctx.fileType) return $void;
 
       // Serve style and client methods
-      if (ctx.fileType == "css")
-      {
-        if (ctx.routeModule?.style) return $text(ctx.routeModule.style(ctx.id)!(ctx));
-      }
-      else if (ctx.fileType == "js")
-      {
-        if (ctx.routeModule?.client) return $text(ctx.routeModule.client.toString());
-      }
+      if (ctx.fileType == "css" && ctx.routeModule?.style)
+        return $text(ctx.routeModule.style(ctx.id)!(ctx));
+      else if (ctx.fileType == "js" && ctx.route == "/main")
+        return $text(client);
+      else if (ctx.fileType == "js" && ctx.routeModule?.client)
+        return $text(`$(${ctx.routeModule.client(ctx.id)});`);
 
       // Serve static files
       const file = `${Config.router.staticFolder}/${ctx.url.pathname}`;

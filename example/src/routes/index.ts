@@ -15,3 +15,10 @@ body {
 }
 
 `
+
+
+export const client: ClientHandler = (ctx) => ({
+  "page:load": () => {
+    console.log("Hello World")
+  }
+})
