@@ -18,11 +18,10 @@ const Register = ({
     view: [(ctx: Context, next: () => string) =>
     {
       const id = ctx.GenerateElementId();
-      const fullRoute = md.scoped ? `${route}#${id}` : route;
 
-      if (md.style)  ctx.meta.push({ type: "link", rel: "stylesheet", href: `${fullRoute}.css` });
-      if (md.client) ctx.meta.push({ type: "script", src: `${fullRoute}.js` });
-      return md.view?.(ctx, next).replace(">", `id="${id}">`) || "";
+      if (md.style)  ctx.meta.push({ type: "link", rel: "stylesheet", href: md.scoped ? `${route}.css?id=${id}` : `${route}.css` });
+      if (md.client) ctx.meta.push({ type: "script", src: md.scoped ? `${route}.js?id=${id}` : `${route}.js` });
+      return md.view?.(ctx, next).replace(">", ` id="${id}">`) || "";
     }],
     client: md.client ?
       (id: string) =>
@@ -42,10 +41,16 @@ const Register = ({
   })
 });
 
-
-/** Load and Compile modules**/
-const Compile = async (folder: string, route: string) => 
+// We load components before routes,
+// but the path recognition is identical for both so they're grouped in a single method.
+// Some routes depend on components hence the split to initialize components first.
+/** Load and Compile modules **/
+const Compile = async (folder: string, route: string, opts: {
+  isComponents: boolean,
+  mode: "Routes" | "Components"
+}) => 
 {
+  if (!fs.existsSync(folder)) return;
   const content = fs.readdirSync(folder);
 
   for (const file of content)
@@ -56,8 +61,8 @@ const Compile = async (folder: string, route: string) =>
     let base = file.endsWith(".js") ? file.slice(0, -3) : file;
     if (base == "index") base = "";
 
-    const componentRegex = fullPath.match(/^(.*)\.components?$/);
-    const isComponent = !!componentRegex;
+    const componentRegex = fullPath.match(/^(.*)\.?components?$/);
+    const isComponent = !!componentRegex || opts.isComponents;
     base = componentRegex?.[1] || base;
 
     const isSplat = base.startsWith('$');
@@ -73,22 +78,30 @@ const Compile = async (folder: string, route: string) =>
 
     if (stats.isDirectory())
     {
-      if (base.startsWith("_")) await Compile(fullPath, route);
-      else                      await Compile(fullPath, fullRoute);
+      if (isComponent && opts.mode == "Routes") continue; // skip component folders that are mixed in routes.
+      if (base.startsWith("_")) await Compile(fullPath, route, opts);
+      else                      await Compile(fullPath, fullRoute, opts);
     }
     else if (!isComponent)
     {
+      if (opts.mode == "Components") continue;
       const md =  {
         ...await import(`file://${process.cwd()}/${fullPath}`) as RouteModule,
-        type: "Route",
-        _splatName: splatName
-      } as const;
+        type: "Route" as const,
+        _splatName: splatName,
+      };
+      if (typeof md.scoped == "undefined") md.scoped = true;
 
       routes[fullRoute] = Register.Route(fullRoute, md);
     }
     else
     {
-      const md = await import(`file://${process.cwd()}/${fullPath}`) as ComponentModule;
+      if (opts.mode == "Routes") continue;
+      const md = {
+        ...await import(`file://${process.cwd()}/${fullPath}`) as ComponentModule
+      };
+      if (typeof md.scoped == "undefined") md.scoped = true;
+
       components[base] = Register.Component(fullRoute, md);
     }
   }
@@ -131,5 +144,16 @@ const Flatten = async () => {
   }
 }
 
-await Compile(Config.router.routesFolder, "/");
+if (Config.router.componentsFolder != Config.router.routesFolder)
+  await Compile(Config.router.componentsFolder, "/", {
+    isComponents: true, mode: "Components"
+  });
+
+await Compile(Config.router.routesFolder, "/", {
+  isComponents: true, mode: "Components"
+});
+
+await Compile(Config.router.routesFolder, "/", {
+  isComponents: false, mode: "Routes"
+});
 await Flatten();

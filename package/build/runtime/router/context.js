@@ -24,12 +24,11 @@ export class Context {
         this.url = new URL(`${App.address}${request.url || ""}`);
         this.pathname = this.url.pathname;
         this.params = this.url.searchParams;
-        const file = this.pathname.match(/(.*)(\#?[0-9a-zA-Z]*)\.([0-9a-z]{1,4})$/i);
-        this.id = "";
+        const file = this.pathname.match(/(.*)\.([0-9a-z]{1,4})$/i);
+        this.id = this.params.get("id") || "";
         if (file) {
             this.pathname = file[1];
-            this.id = file[2];
-            this.fileType = file[3];
+            this.fileType = file[2];
         }
         const { query, route } = GetRoute(this.pathname);
         this.query = query;
@@ -50,6 +49,6 @@ export class Context {
     routeModule;
     data = {};
     componentsCount = 0;
-    GenerateElementId = () => `$${obfuscate(this.componentsCount++)}`;
+    GenerateElementId = () => `${obfuscate(this.componentsCount++)}`;
     getRoute = () => routes[this.route];
 }

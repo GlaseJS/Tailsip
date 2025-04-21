@@ -7,12 +7,11 @@ const Register = ({
     View: (route, md) => ({
         view: [(ctx, next) => {
                 const id = ctx.GenerateElementId();
-                const fullRoute = md.scoped ? `${route}#${id}` : route;
                 if (md.style)
-                    ctx.meta.push({ type: "link", rel: "stylesheet", href: `${fullRoute}.css` });
+                    ctx.meta.push({ type: "link", rel: "stylesheet", href: md.scoped ? `${route}.css?id=${id}` : `${route}.css` });
                 if (md.client)
-                    ctx.meta.push({ type: "script", src: `${fullRoute}.js` });
-                return md.view?.(ctx, next).replace(">", `id="${id}">`) || "";
+                    ctx.meta.push({ type: "script", src: md.scoped ? `${route}.js?id=${id}` : `${route}.js` });
+                return md.view?.(ctx, next).replace(">", ` id="${id}">`) || "";
             }],
         client: md.client ?
             (id) => md.client.toString().replace(/(["'])\$:([a-zA-Z]+)\1/gm, (_, quote, event) => `"#${id}:${event}"`) :
@@ -30,8 +29,13 @@ const Register = ({
         ...md, ...Register.View(route, md)
     })
 });
-/** Load and Compile modules**/
-const Compile = async (folder, route) => {
+// We load components before routes,
+// but the path recognition is identical for both so they're grouped in a single method.
+// Some routes depend on components hence the split to initialize components first.
+/** Load and Compile modules **/
+const Compile = async (folder, route, opts) => {
+    if (!fs.existsSync(folder))
+        return;
     const content = fs.readdirSync(folder);
     for (const file of content) {
         const fullPath = `${folder}/${file}`;
@@ -39,8 +43,8 @@ const Compile = async (folder, route) => {
         let base = file.endsWith(".js") ? file.slice(0, -3) : file;
         if (base == "index")
             base = "";
-        const componentRegex = fullPath.match(/^(.*)\.components?$/);
-        const isComponent = !!componentRegex;
+        const componentRegex = fullPath.match(/^(.*)\.?components?$/);
+        const isComponent = !!componentRegex || opts.isComponents;
         base = componentRegex?.[1] || base;
         const isSplat = base.startsWith('$');
         let splatName = "";
@@ -54,21 +58,33 @@ const Compile = async (folder, route) => {
             });
         const fullRoute = route + base;
         if (stats.isDirectory()) {
+            if (isComponent && opts.mode == "Routes")
+                continue; // skip component folders that are mixed in routes.
             if (base.startsWith("_"))
-                await Compile(fullPath, route);
+                await Compile(fullPath, route, opts);
             else
-                await Compile(fullPath, fullRoute);
+                await Compile(fullPath, fullRoute, opts);
         }
         else if (!isComponent) {
+            if (opts.mode == "Components")
+                continue;
             const md = {
                 ...await import(`file://${process.cwd()}/${fullPath}`),
                 type: "Route",
-                _splatName: splatName
+                _splatName: splatName,
             };
+            if (typeof md.scoped == "undefined")
+                md.scoped = true;
             routes[fullRoute] = Register.Route(fullRoute, md);
         }
         else {
-            const md = await import(`file://${process.cwd()}/${fullPath}`);
+            if (opts.mode == "Routes")
+                continue;
+            const md = {
+                ...await import(`file://${process.cwd()}/${fullPath}`)
+            };
+            if (typeof md.scoped == "undefined")
+                md.scoped = true;
             components[base] = Register.Component(fullRoute, md);
         }
     }
@@ -97,5 +113,14 @@ const Flatten = async () => {
         delete temp[route];
     }
 };
-await Compile(Config.router.routesFolder, "/");
+if (Config.router.componentsFolder != Config.router.routesFolder)
+    await Compile(Config.router.componentsFolder, "/", {
+        isComponents: true, mode: "Components"
+    });
+await Compile(Config.router.routesFolder, "/", {
+    isComponents: true, mode: "Components"
+});
+await Compile(Config.router.routesFolder, "/", {
+    isComponents: false, mode: "Routes"
+});
 await Flatten();

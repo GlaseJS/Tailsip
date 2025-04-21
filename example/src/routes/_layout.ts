@@ -5,5 +5,7 @@ export const loader: APIHandler = async (ctx) => {
 }
 
 export const view: ViewHandler = ({}, next) => `
+  <div>
   ${next()}
+  </div>
 `;

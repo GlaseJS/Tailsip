@@ -1,5 +1,7 @@
 export const view: ViewHandler = ({}, next) => `
-hellow world
+<div>
+  hellow world
+</div>
 `;
 
 export const style: StyleHandler = (ctx) => `

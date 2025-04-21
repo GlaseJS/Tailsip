@@ -1,5 +1,6 @@
 {
   "router": {
-    "routesFolder": "build/routes"
+    "routesFolder": "build/routes",
+    "componentsFolder": "build/components"
   }
 }

@@ -31,13 +31,12 @@ export class Context
     this.pathname = this.url.pathname;
     this.params   = this.url.searchParams;
 
-    const file = this.pathname.match(/(.*)(\#?[0-9a-zA-Z]*)\.([0-9a-z]{1,4})$/i);
-    this.id = "";
+    const file = this.pathname.match(/(.*)\.([0-9a-z]{1,4})$/i);
+    this.id = this.params.get("id") || "";
     if (file)
     {
       this.pathname = file[1];
-      this.id = file[2];
-      this.fileType = file[3];
+      this.fileType = file[2];
     }
 
     const { query, route } = GetRoute(this.pathname);
@@ -65,7 +64,7 @@ export class Context
   public data = {};
 
   private componentsCount = 0;
-  public GenerateElementId = () => `$${obfuscate(this.componentsCount++)}`;
+  public GenerateElementId = () => `${obfuscate(this.componentsCount++)}`;
 
   public getRoute = () => routes[this.route];
 }

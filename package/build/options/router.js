@@ -1,4 +1,5 @@
 export const DefaultOptions = {
     routesFolder: "routes",
-    staticFolder: "public"
+    staticFolder: "public",
+    componentsFolder: "components",
 };

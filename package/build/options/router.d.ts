@@ -2,6 +2,7 @@ import type { Context } from "../runtime/router/context.js";
 export type Options = {
     routesFolder: string;
     staticFolder: string;
+    componentsFolder: string;
 };
 export declare const DefaultOptions: Required<Options>;
 export type Returns = {

@@ -3,12 +3,14 @@ import type { Context } from "../runtime/router/context.js";
 
 export type Options = {
   routesFolder: string,
-  staticFolder: string
+  staticFolder: string,
+  componentsFolder: string,
 }
 
 export const DefaultOptions: Required<Options> = {
   routesFolder: "routes",
-  staticFolder: "public"
+  staticFolder: "public",
+  componentsFolder: "components",
 } as any;
 
 export type Returns = {

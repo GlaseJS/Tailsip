@@ -11,5 +11,8 @@
   },
   "dependencies": {
     "tailsip": "file:../package"
+  },
+  "scripts": {
+    "start": "npx tailsip"
   }
 }
