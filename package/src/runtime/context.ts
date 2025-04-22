@@ -1,8 +1,8 @@
 
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { obfuscate } from "../../libs/obfuscate.js";
+import { obfuscate } from "../libs/obfuscate.js";
 
-import { InternalRoute, routes, splats } from "./preload.js";
+import { InternalRoute, routes, splats } from "./compiler.js";
 
 const GetRoute = (path: string) => {
   let route = path;
@@ -27,7 +27,7 @@ export class Context
     public headers: Headers,
     public body?: JsonObject
   ) {
-    this.url = new URL(`${App.address}${request.url || ""}`);
+    this.url = new URL(App.address + (request.url?.slice(1) || ""));
     this.pathname = this.url.pathname;
     this.params   = this.url.searchParams;
 

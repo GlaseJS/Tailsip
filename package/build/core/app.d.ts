@@ -1,6 +1,6 @@
 import { App as Interface } from "./interfaces.js";
 export interface App extends Interface {
-    address: string;
+    address: URL;
 }
 export declare class App {
 }

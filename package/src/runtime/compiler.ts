@@ -144,16 +144,16 @@ const Flatten = async () => {
   }
 }
 
-if (Config.router.componentsFolder != Config.router.routesFolder)
-  await Compile(Config.router.componentsFolder, "/", {
+if (Config.tailsip.componentsFolder != Config.tailsip.routesFolder)
+  await Compile(Config.tailsip.componentsFolder, "/", {
     isComponents: true, mode: "Components"
   });
 
-await Compile(Config.router.routesFolder, "/", {
+await Compile(Config.tailsip.routesFolder, "/", {
   isComponents: true, mode: "Components"
 });
 
-await Compile(Config.router.routesFolder, "/", {
+await Compile(Config.tailsip.routesFolder, "/", {
   isComponents: false, mode: "Routes"
 });
 await Flatten();

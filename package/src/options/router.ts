@@ -1,16 +1,10 @@
 
-import type { Context } from "../runtime/router/context.js";
+import type { Context } from "../runtime/context.js";
 
 export type Options = {
-  routesFolder: string,
-  staticFolder: string,
-  componentsFolder: string,
 }
 
 export const DefaultOptions: Required<Options> = {
-  routesFolder: "routes",
-  staticFolder: "public",
-  componentsFolder: "components",
 } as any;
 
 export type Returns = {
@@ -19,7 +13,7 @@ export type Returns = {
   FILE: (ctx: ConstructorParameters<typeof Context>) => Promise<Wrapper>;
 };
 
-export type Component = (opts: Options) => Returns;
+export type Component = (opts: Required<Options>) => Returns;
 
 declare module "../core/interfaces.js" {
   interface Config {

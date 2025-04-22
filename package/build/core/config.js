@@ -2,6 +2,7 @@ import * as _ from "../options/index.js";
 global.Config = ({
     tailsip: _.Core.DefaultOptions,
     logger: _.Logger.DefaultOptions,
+    socket: _.Socket.DefaultOptions,
     router: _.Router.DefaultOptions,
     host: _.Host.DefaultOptions
 });

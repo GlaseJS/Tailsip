@@ -2,19 +2,22 @@
 
 
 import { Router as _ } from "../../options/index.js";
-import { Context } from "./context.js";
-import { client } from "./client.js"
+import { Context } from "../context.js";
+
+import { client } from "./client.js";
+import { reset } from "./reset.js";
+
 import fs from "node:fs";
 
 export const Router: _.Component = (opts) => {
-  const logger = App.logger!("Router");
+  const logger = App.logger!("router");
 
   return ({
     GET: async (req) => {
       const ctx = new Context(...req);
       let finalView = "";
 
-      logger.log(`    Route:${ctx.route}`);
+      logger.log(`route:${ctx.route}`);
 
       const route = ctx.getRoute();
       if (!route) return $void; //404
@@ -35,8 +38,9 @@ export const Router: _.Component = (opts) => {
         return $view(`
         <html${ctx.lang ? ` lang="${ctx.lang}"` : ""}>
           <head>
+            <script src="/socket.js"></script>
             <script src="/main.js"></script>
-            <link rel="stylesheet" href="/main.css">
+            <link rel="stylesheet" href="/reset.css">
             ${ ctx.meta.map((meta => {
               if (meta.type == "meta")
                 return `<meta name="${meta.name}" content="${meta.content}">`;
@@ -64,15 +68,19 @@ export const Router: _.Component = (opts) => {
       if (!ctx.fileType) return $void;
 
       // Serve style and client methods
+      if (ctx.fileType == "css" && ctx.route == "/reset")
+        return $text(reset);
       if (ctx.fileType == "css" && ctx.routeModule?.style)
         return $text(ctx.routeModule.style(ctx.id)!(ctx));
       else if (ctx.fileType == "js" && ctx.route == "/main")
         return $text(client);
+      else if (ctx.fileType == "js" && ctx.route == "/socket" && App.socket)
+        return $text(App.socket!.client());
       else if (ctx.fileType == "js" && ctx.routeModule?.client)
         return $text(`$(${ctx.routeModule.client(ctx.id)});`);
 
       // Serve static files
-      const file = `${Config.router.staticFolder}/${ctx.url.pathname}`;
+      const file = `${Config.tailsip.staticFolder}/${ctx.url.pathname}`;
       if (fs.existsSync(file)) return $file(file);
 
       return $void;

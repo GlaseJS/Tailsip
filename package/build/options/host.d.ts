@@ -4,8 +4,12 @@ export type Options = {
     port?: number;
     key?: string;
     cert?: string;
-    corsPolicy: "strict" | "lax";
-    allowedOrigins: string[];
+    corsPolicy?: "strict" | "lax";
+    allowedOrigins?: string[];
+    textCachingDuration?: number;
+    viewCachingDuration?: number;
+    jsonCachingDuration?: number;
+    staticCachingDuration?: number;
 };
 export declare const DefaultOptions: Required<Options>;
 export type Returns = () => void;

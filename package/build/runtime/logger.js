@@ -1,10 +1,15 @@
 import fs from "node:fs/promises";
+import { $ } from "../libs/ansi.js";
+import { padLeft } from "../libs/strings.js";
 const activeFileHandles = {};
 process.on("exit", () => {
     for (const key in activeFileHandles)
         activeFileHandles[key].fh.close().catch();
 });
 export const Logger = (opts) => (context) => {
+    const log = (mode) => (message) => {
+        console[mode](`${$.cyan + padLeft(context, 10) + $.reset} | ${message}`);
+    };
     const append = async (data) => {
         const date = new Date().toISOString().slice(0, 10).replace(/-/g, "");
         const fileName = `${process.cwd()}/logs/${context}.${date}.log`;
@@ -18,24 +23,24 @@ export const Logger = (opts) => (context) => {
         fs.appendFile(activeFileHandles[context].fh, data).catch();
     };
     return {
-        log: opts.mode == "development" ?
-            (message) => console.log(message) :
-            opts.logLevel == "all" ?
-                (message) => append(opts.format("log", message)) :
-                () => { },
         heed: opts.mode == "development" ?
             () => console.trace() :
             () => { },
+        log: opts.mode == "development" ?
+            log("log") :
+            opts.logLevel == "all" ?
+                (message) => append(opts.format("log", message)) :
+                () => { },
         debug: opts.mode == "development" ?
-            (message) => console.debug(message) :
+            log("debug") :
             () => { },
         warn: opts.mode == "development" ?
-            (message) => console.warn(message) :
+            log("warn") :
             opts.logLevel == "error" ?
                 () => { } :
                 (message) => append(opts.format("warn", message)),
         error: opts.mode == "development" ?
-            (error) => console.error(error) :
+            log("error") :
             (error) => append(opts.format("err", error.message))
     };
 };

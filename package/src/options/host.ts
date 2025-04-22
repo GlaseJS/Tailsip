@@ -9,8 +9,13 @@ export type Options = {
   key?: string,
   cert?: string,
 
-  corsPolicy: "strict" | "lax",
-  allowedOrigins: string[],
+  corsPolicy?: "strict" | "lax",
+  allowedOrigins?: string[],
+
+  textCachingDuration?: number
+  viewCachingDuration?: number
+  jsonCachingDuration?: number
+  staticCachingDuration?: number
 }
 
 export const DefaultOptions: Required<Options> = {
@@ -23,6 +28,11 @@ export const DefaultOptions: Required<Options> = {
 
   corsPolicy: process.env.NODE_ENV == "production" ? "strict" : "lax",
   allowedOrigins: process.env.NODE_ENV == "production" ? [] : ["*"],
+
+  clientCachingDuration: process.env.NODE_ENV == "production" ? 7*24*60*60 : 0, // 7 days
+  viewCachingDuration:   process.env.NODE_ENV == "production" ? 7*24*60*60 : 0, // 7 days
+  jsonCachingDuration:   process.env.NODE_ENV == "production" ? 8*60*60 : 0,    // 8h
+  staticCachingDuration: process.env.NODE_ENV == "production" ? 30*24*6060 : 0, // 30 days
 } as any;
 
 export type Returns = () => void;
