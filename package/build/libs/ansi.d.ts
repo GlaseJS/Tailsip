@@ -18,4 +18,6 @@ export declare const $: {
         cyan: string;
         white: string;
     };
+    regex: RegExp;
+    clear: (str: string) => string;
 };

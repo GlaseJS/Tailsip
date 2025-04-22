@@ -17,5 +17,8 @@ export const $ = {
     magenta: "\x1b[45m",
     cyan:    "\x1b[46m",
     white:   "\x1b[47m",
-  }
+  },
+
+  regex: /\x1b\[[0-9;]*m/g,
+  clear: (str: string) => str.replace($.regex, "")
 }

@@ -32,7 +32,7 @@ export const Logger: _.Component = (opts) => (context) => {
       oldHandle.close().catch();
     }
 
-    fs.appendFile(activeFileHandles[context].fh, data).catch();
+    fs.appendFile(activeFileHandles[context].fh, $.clear(data)).catch();
   };
 
   return {

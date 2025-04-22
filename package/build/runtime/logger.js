@@ -20,7 +20,7 @@ export const Logger = (opts) => (context) => {
             activeFileHandles[context] = { name: fileName, fh: await fs.open(fileName, "a").catch() };
             oldHandle.close().catch();
         }
-        fs.appendFile(activeFileHandles[context].fh, data).catch();
+        fs.appendFile(activeFileHandles[context].fh, $.clear(data)).catch();
     };
     return {
         heed: opts.mode == "development" ?
