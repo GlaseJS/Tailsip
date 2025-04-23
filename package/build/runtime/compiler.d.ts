@@ -13,7 +13,6 @@ export declare const components: {
 export declare const sockets: {
     [id: string]: ((ctx: SocketHandlerArgs) => any)[];
 };
-export declare let usesSockets: boolean;
 /** Defines wrappers for certain user provided methods */
 declare const Register: {
     View: (route: string, md: ComponentModule) => {
@@ -46,4 +45,5 @@ declare const Register: {
         scoped?: boolean;
     };
 };
+export declare const usesSockets: boolean;
 export {};

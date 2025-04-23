@@ -46,13 +46,15 @@ export class SocketUser {
         this.socket.destroy();
     }
 }
+let pingCounts = 0;
+let active = 0;
+let timeout = 0;
 if (usesSockets)
     setInterval(() => {
         // skip pings when no sockets are connected.
         if (socketCount == 0)
             return;
-        let active = 0;
-        let timeout = 0;
+        pingCounts++;
         for (const id in sockets) {
             if (!sockets[id].active()) {
                 timeout++;
@@ -62,5 +64,10 @@ if (usesSockets)
             active++;
             sockets[id].Ping();
         }
-        App.logger("socket").log(`${$.blue}PING${$.reset}  ::  ${active} open sockets  ::  ${timeout} timed out`);
+        if (pingCounts > Config.socket.socketLogFrequency) {
+            App.logger("socket").log(`${$.blue}PING${$.reset}  ::  ${active} open sockets  ::  ${timeout} timed out`);
+            pingCounts = 0;
+            active = 0;
+            timeout = 0;
+        }
     }, Config.socket.socketPingMS);

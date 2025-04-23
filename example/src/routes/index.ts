@@ -1,17 +1,25 @@
 export const view: ViewHandler = ({}, next) => `
 <div>
-  hellow world
+  <div class="name">
+    <span>__  __  _____   __    _   _     __   _   ___   __  __ </span>
+    <span>\\ \\ \\ \\  | |   / /\\  | | | |   ( (\` | | | |_) / / / / </span>
+    <span>/_/ /_/  |_|  /_/--\\ |_| |_|__ _)_) |_| |_|   \\_\\ \\_\\ </span>
+    <span></span>
+  </div>
 </div>
 `;
 
 export const style: StyleHandler = (ctx) => `
 
-html, body {
-  min-height: 100vh; 
+
+
+$>.name {
+  margin: 0 auto;
 }
 
-body {
-  background-color: #FF55FF;
+$>.name>span {
+  display: block;
+  font-family: "Roboto Mono", mono, monospace;
 }
 
 `
@@ -19,6 +27,17 @@ body {
 
 export const client: ClientHandler = (ctx) => ({
   "page:load": () => {
-    console.log("Hello World")
+    console.log("Page loaded");
+
+    ctx.emit("test");
+  },
+  "on:test": (data) => {
+    
   }
-})
+});
+
+export const socket: SocketHandler = {
+  "test": (ctx) => {
+    console.log()
+  }
+}

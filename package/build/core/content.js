@@ -7,20 +7,20 @@ const jsonWrapper = (object) => ({
     resolve: () => JSON.stringify(object)
 });
 global.$json = jsonWrapper;
-const viewWrapper = (content, trim = true) => ({
+const viewWrapper = (content) => ({
     type: "View",
     content,
     toString: () => content,
     toJson: () => ({ view: content }),
-    resolve: () => trim ? content.trim().replace(/\s{2,}/g, ' ').replace(/\n/g, '') : content
+    resolve: () => content
 });
 global.$view = viewWrapper;
-const textWrapper = (content, trim = true) => ({
+const textWrapper = (content) => ({
     type: "Text",
     content,
     toString: () => content,
     toJson: () => ({ text: content }),
-    resolve: () => trim ? content.trim().replace(/\s{2,}/g, ' ').replace(/\n/g, '') : content
+    resolve: () => content
 });
 global.$text = textWrapper;
 const fileWrapper = (path) => ({

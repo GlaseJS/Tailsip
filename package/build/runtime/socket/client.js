@@ -1,30 +1,25 @@
-// @ts-nocheck
+import { ClientWrapper } from "../../libs/clientWrapper.js";
 import { integrityShard } from "./payload.js";
-// Comment only between /* */ in this method to ease cleanup.
-export const client = (address) => `
-    const integrityShard = "${integrityShard}";
-    const socket = new WebSocket("ws://${address}");
-
-    const send = (event, data = {}) =>
-      socket.send(JSON.stringify({
+export const client = (address) => ClientWrapper(($tsr) => {
+    const integrityShard = "$tsr.integrityShard";
+    const socket = new WebSocket("ws://$tsr.address");
+    const send = (event, data = {}) => socket.send(JSON.stringify({
         event, integrityShard, data
-      }));
-
+    }));
     socket.onopen = () => {
-      console.log("Websockets connected");
+        console.log("Websockets connected");
     };
-
     socket.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.integrityShard != integrityShard) return;
-      if (msg.event == "socket:ping" && msg.from == "host") return send("socket:ping");
+        const msg = JSON.parse(event.data);
+        if (msg.integrityShard != integrityShard)
+            return;
+        if (msg.event == "socket:ping" && msg.from == "host")
+            return send("socket:ping");
     };
-
     socket.onclose = () => {
-      console.log('Connection closed');
+        console.log('Connection closed');
     };
-
     socket.onerror = (err) => {
-      console.error('Socket error', err);
+        console.error('Socket error', err);
     };
-`.replace(/\/\*[\s\S]*?\*\//g, '');
+}, { integrityShard, address }).slice(8, -1); // Slice to remove the wrapper method

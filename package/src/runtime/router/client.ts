@@ -1,9 +1,9 @@
-// @ts-nocheck
-// Comment only between /* */ in this method to ease cleanup.
-export const client = (
+import { ClientWrapper } from "../../libs/clientWrapper.js";
+
+export const client = ClientWrapper(
 function $(handler: ClientHandler) {
   const context = {};
-  const events = handler(context);
+  const events = handler(context as any);
 
   for (const key in events) {
     const fn = events[key as keyof typeof handler];
@@ -12,6 +12,7 @@ function $(handler: ClientHandler) {
       continue;
     }
     if (key.startsWith("page:")) {
+      /* @ts-ignore */
       window.addEventListener(key.slice(5), fn);
       continue;
     }
@@ -24,7 +25,8 @@ function $(handler: ClientHandler) {
     }
 
     const [, selector, event] = match;
+    /* @ts-ignore */
     const nodes = document.querySelectorAll(selector);
-    nodes.forEach(el => el.addEventListener(event, fn)); /* TODO: wrapper */
+    nodes.forEach((el: any) => el.addEventListener(event, fn)); /* TODO: wrap with handling */
   }
-}).toString().replace(/\/\*[\s\S]*?\*\//g, '');
+});

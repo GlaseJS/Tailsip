@@ -12,14 +12,14 @@ declare const jsonWrapper: (object: JsonObject) => {
     toJson: () => JsonObject;
     resolve: () => string;
 };
-declare const viewWrapper: (content: string, trim?: boolean) => {
+declare const viewWrapper: (content: string) => {
     type: "View";
     content: string;
     toString: () => string;
     toJson: () => JsonObject;
     resolve: () => string;
 };
-declare const textWrapper: (content: string, trim?: boolean) => {
+declare const textWrapper: (content: string) => {
     type: "Text";
     content: string;
     toString: () => string;

@@ -1,13 +1,12 @@
-// @ts-nocheck
 
+import { ClientWrapper } from "../../libs/clientWrapper.js";
 import { integrityShard } from "./payload.js";
 
-// Comment only between /* */ in this method to ease cleanup.
-export const client = (address: string) => `
-    const integrityShard = "${integrityShard}";
-    const socket = new WebSocket("ws://${address}");
+export const client = (address: string) => ClientWrapper(($tsr) => {
+    const integrityShard = "$tsr.integrityShard";
+    const socket = new WebSocket("ws://$tsr.address");
 
-    const send = (event, data = {}) =>
+    const send = (event: string, data = {}) =>
       socket.send(JSON.stringify({
         event, integrityShard, data
       }));
@@ -29,4 +28,4 @@ export const client = (address: string) => `
     socket.onerror = (err) => {
       console.error('Socket error', err);
     };
-`.replace(/\/\*[\s\S]*?\*\//g, '');
+}, { integrityShard, address }).slice(8, -1); // Slice to remove the wrapper method

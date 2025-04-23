@@ -14,7 +14,6 @@ export const components: { [x: string]: Partial<ReturnType<typeof Register["Comp
 export const sockets : {
   [id: string]: ((ctx: SocketHandlerArgs) => any)[];
 } = {};
-export let usesSockets = false;
 
 /** Defines wrappers for certain user provided methods */
 const Register = ({
@@ -25,7 +24,7 @@ const Register = ({
 
       if (md.style)  ctx.meta.push({ type: "link", rel: "stylesheet", href: md.scoped ? `${route}.css?id=${id}` : `${route}.css` });
       if (md.client) ctx.meta.push({ type: "script", src: md.scoped ? `${route}.js?id=${id}` : `${route}.js` });
-      return md.view?.(ctx, next).replace(">", ` id="${id}">`) || "";
+      return md.view?.(ctx, next).replace(">", ` id="id${id}">`) || "";
     }],
     client: md.client ?
       (id: string) =>
@@ -33,7 +32,7 @@ const Register = ({
         undefined,
     style: md.style ?
       (id: string) => md.scoped ?
-        (ctx: Context) => md.style!(ctx).replace(/^(.*{\s*)$/gm, (_, line) => `#${id} ${line}`) :
+        (ctx: Context) => md.style!(ctx).replace(/\$>([a-zA-Z0-9 .>#]*[\{\,])/gm, (_, line) => `#id${id} ${line}`) :
         md.style : undefined
   }),
   Route: (route: string, md: RouteModule) => ({
@@ -102,7 +101,6 @@ const Compile = async (folder: string, route: string, opts: {
 
       // Sockets
       if (!md.socket) continue;
-      if (!usesSockets) usesSockets = true;
 
       for (const event in md.socket) {
         if (!(event in sockets)) sockets[event] = [];
@@ -172,3 +170,5 @@ await Compile(Config.tailsip.routesFolder, "/", {
   isComponents: false, mode: "Routes"
 });
 await Flatten();
+
+export const usesSockets = Object.keys(sockets).length > 0;

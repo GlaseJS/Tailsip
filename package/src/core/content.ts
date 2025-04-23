@@ -20,21 +20,21 @@ const jsonWrapper = (object: JsonObject) => ({
 });
 global.$json = jsonWrapper;
 
-const viewWrapper = (content: string, trim = true) => ({
+const viewWrapper = (content: string) => ({
   type: "View" as const,
   content,
   toString: () => content,
   toJson:   () => ({ view: content }) as JsonObject,
-  resolve:  () => trim ? content.trim().replace(/\s{2,}/g, ' ').replace(/\n/g, '') : content
+  resolve:  () => content
 });
 global.$view = viewWrapper;
 
-const textWrapper = (content: string, trim = true) => ({
+const textWrapper = (content: string) => ({
   type: "Text" as const,
   content,
   toString: () => content,
   toJson:   () => ({ text: content }) as JsonObject,
-  resolve:  () => trim ? content.trim().replace(/\s{2,}/g, ' ').replace(/\n/g, '') : content
+  resolve:  () => content
 });
 global.$text = textWrapper;
 
