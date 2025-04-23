@@ -10,6 +10,10 @@ export declare const routes: {
 export declare const components: {
     [x: string]: Partial<ReturnType<typeof Register["Component"]>>;
 };
+export declare const sockets: {
+    [id: string]: ((ctx: SocketHandlerArgs) => any)[];
+};
+export declare let usesSockets: boolean;
 /** Defines wrappers for certain user provided methods */
 declare const Register: {
     View: (route: string, md: ComponentModule) => {

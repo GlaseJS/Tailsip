@@ -1,7 +1,11 @@
 
 
 
+import { $ } from "../../libs/ansi.js";
+import { padRight } from "../../libs/strings.js";
+import { Timer } from "../../libs/timer.js";
 import { Router as _ } from "../../options/index.js";
+import { usesSockets } from "../compiler.js";
 import { Context } from "../context.js";
 
 import { client } from "./client.js";
@@ -11,13 +15,12 @@ import fs from "node:fs";
 
 export const Router: _.Component = (opts) => {
   const logger = App.logger!("router");
+      
 
   return ({
     GET: async (req) => {
       const ctx = new Context(...req);
       let finalView = "";
-
-      logger.log(`route:${ctx.route}`);
 
       const route = ctx.getRoute();
       if (!route) return $void; //404
@@ -38,7 +41,7 @@ export const Router: _.Component = (opts) => {
         return $view(`
         <html${ctx.lang ? ` lang="${ctx.lang}"` : ""}>
           <head>
-            <script src="/socket.js"></script>
+            ${ usesSockets ? `<script src="/socket.js"></script>` : "" }
             <script src="/main.js"></script>
             <link rel="stylesheet" href="/reset.css">
             ${ ctx.meta.map((meta => {
@@ -65,7 +68,7 @@ export const Router: _.Component = (opts) => {
 
     FILE: async (req) => {
       const ctx = new Context(...req);
-      if (!ctx.fileType) return $void;
+      if (!ctx.fileType) return $void; // We don't wrap when the request isn't a file.
 
       // Serve style and client methods
       if (ctx.fileType == "css" && ctx.route == "/reset")
@@ -74,7 +77,7 @@ export const Router: _.Component = (opts) => {
         return $text(ctx.routeModule.style(ctx.id)!(ctx));
       else if (ctx.fileType == "js" && ctx.route == "/main")
         return $text(client);
-      else if (ctx.fileType == "js" && ctx.route == "/socket" && App.socket)
+      else if (usesSockets && ctx.fileType == "js" && ctx.route == "/socket" && App.socket)
         return $text(App.socket!.client());
       else if (ctx.fileType == "js" && ctx.routeModule?.client)
         return $text(`$(${ctx.routeModule.client(ctx.id)});`);
@@ -88,6 +91,7 @@ export const Router: _.Component = (opts) => {
 
     POST: async (req) => {
       const ctx = new Context(...req);
+
       let actionError: ErrorHandler<APIHandler> = (err) => async () => logger.error(err);
       const route = ctx.routeModule;
 

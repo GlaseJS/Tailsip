@@ -1,3 +1,4 @@
+import { usesSockets } from "../compiler.js";
 import { Context } from "../context.js";
 import { client } from "./client.js";
 import { reset } from "./reset.js";
@@ -8,7 +9,6 @@ export const Router = (opts) => {
         GET: async (req) => {
             const ctx = new Context(...req);
             let finalView = "";
-            logger.log(`route:${ctx.route}`);
             const route = ctx.getRoute();
             if (!route)
                 return $void; //404
@@ -32,7 +32,7 @@ export const Router = (opts) => {
                 return $view(`
         <html${ctx.lang ? ` lang="${ctx.lang}"` : ""}>
           <head>
-            <script src="/socket.js"></script>
+            ${usesSockets ? `<script src="/socket.js"></script>` : ""}
             <script src="/main.js"></script>
             <link rel="stylesheet" href="/reset.css">
             ${ctx.meta.map((meta => {
@@ -58,7 +58,7 @@ export const Router = (opts) => {
         FILE: async (req) => {
             const ctx = new Context(...req);
             if (!ctx.fileType)
-                return $void;
+                return $void; // We don't wrap when the request isn't a file.
             // Serve style and client methods
             if (ctx.fileType == "css" && ctx.route == "/reset")
                 return $text(reset);
@@ -66,7 +66,7 @@ export const Router = (opts) => {
                 return $text(ctx.routeModule.style(ctx.id)(ctx));
             else if (ctx.fileType == "js" && ctx.route == "/main")
                 return $text(client);
-            else if (ctx.fileType == "js" && ctx.route == "/socket" && App.socket)
+            else if (usesSockets && ctx.fileType == "js" && ctx.route == "/socket" && App.socket)
                 return $text(App.socket.client());
             else if (ctx.fileType == "js" && ctx.routeModule?.client)
                 return $text(`$(${ctx.routeModule.client(ctx.id)});`);

@@ -3,6 +3,10 @@ import type { Server as httpsServer } from "node:https";
 export type Options = {
     maxSize?: number;
     address?: string;
+    roomAutoEmit?: boolean;
+    socketTimeoutMS?: number;
+    socketPingMS?: number;
+    socketLogFrequency?: number;
 };
 export declare const DefaultOptions: Required<Options>;
 export type Returns = {

@@ -1,7 +1,10 @@
 import crypto from "node:crypto";
+import { sockets as handlers } from "../compiler.js";
 import { client } from "./client.js";
-// TODO: register routes and components sockets.
-//const socket = (handler:)
+import { sockets, SocketUser } from "./user.js";
+import { Room } from "./room.js";
+import { integrityShard, Payload } from "./payload.js";
+// Component
 export const Socket = (opts) => {
     const logger = App.logger("socket");
     return ({
@@ -28,13 +31,15 @@ export const Socket = (opts) => {
                     '\r\n'
                 ];
                 socket.write(headers.join("\r\n"));
+                const user = new SocketUser(socket);
+                Room("/").join(user.id);
                 socket.on("data", buffer => {
                     const op = buffer[0] & 0b00001111;
                     const lenByte = buffer[1] & 0b01111111;
                     if (buffer.length > opts.maxSize)
                         return socket.destroy();
                     if (op === 0x8 || (buffer[0] & 0b10000000) === 0 || (buffer[1] & 0b10000000) === 0)
-                        return socket.end();
+                        return user.close("exit");
                     if (op === 0x9)
                         return socket.write(Buffer.from([0b10001010, 0]));
                     let payloadLength = lenByte;
@@ -58,12 +63,33 @@ export const Socket = (opts) => {
                     if (mask)
                         for (let i = 0; i < data.length; i++)
                             data[i] ^= mask[i % 4];
-                    const msg = data.toString("utf8");
-                    logger.log(msg);
-                    // TODO split message treatement and answering in seperate methods
-                    const response = Buffer.from(msg);
-                    const reply = Buffer.concat([Buffer.from([0x81, response.length]), response]);
-                    socket.write(reply);
+                    const msg = JSON.parse(data.toString("utf8"));
+                    // Malformed message. This can happen on network errors.
+                    if (msg.integrityShard != integrityShard || !msg.event || !msg.data)
+                        return;
+                    if (msg.event == "socket:ping")
+                        return user.onPing();
+                    // No handlers for queried event
+                    if (!(msg.event in handlers))
+                        return;
+                    for (const handler of handlers[msg.event]) {
+                        handler({
+                            from: user.id, data: msg.data,
+                            room: (name) => ({
+                                join: () => Room(name).join(user.id),
+                                emit: (event, data) => Room(name).emit(user.id, event, data),
+                                leave: () => Room(name).leave(user.id)
+                            }),
+                            to: (id) => ({
+                                emit: (event, data = {}) => {
+                                    if (!(id in sockets))
+                                        return;
+                                    sockets[id].send(Payload(event, user.id, data));
+                                }
+                            }),
+                            emit: (event, data) => Room("/").emit(user.id, event, data)
+                        });
+                    }
                 });
                 socket.on("end", () => {
                     logger.log("Socket connection closed");

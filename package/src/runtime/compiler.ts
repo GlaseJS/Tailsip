@@ -11,6 +11,10 @@ export const splats: {
 export const routes: { [x: string]: InternalRoute } = {}
 export const components: { [x: string]: Partial<ReturnType<typeof Register["Component"]>>  } = {};
 
+export const sockets : {
+  [id: string]: ((ctx: SocketHandlerArgs) => any)[];
+} = {};
+export let usesSockets = false;
 
 /** Defines wrappers for certain user provided methods */
 const Register = ({
@@ -85,6 +89,8 @@ const Compile = async (folder: string, route: string, opts: {
     else if (!isComponent)
     {
       if (opts.mode == "Components") continue;
+
+      // Route
       const md =  {
         ...await import(`file://${process.cwd()}/${fullPath}`) as RouteModule,
         type: "Route" as const,
@@ -93,6 +99,15 @@ const Compile = async (folder: string, route: string, opts: {
       if (typeof md.scoped == "undefined") md.scoped = true;
 
       routes[fullRoute] = Register.Route(fullRoute, md);
+
+      // Sockets
+      if (!md.socket) continue;
+      if (!usesSockets) usesSockets = true;
+
+      for (const event in md.socket) {
+        if (!(event in sockets)) sockets[event] = [];
+        sockets[event].push(md.socket[event]);
+      }
     }
     else
     {

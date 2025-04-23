@@ -2,12 +2,13 @@
 import crypto from "node:crypto";
 
 import { Socket as _ } from "../../options/index.js";
-import { routes, components } from "../compiler.js";
+import { sockets as handlers } from "../compiler.js";
 import { client } from "./client.js";
+import { sockets, SocketUser } from "./user.js";
+import { Room } from "./room.js";
+import { integrityShard, Payload } from "./payload.js";
 
-// TODO: register routes and components sockets.
-//const socket = (handler:)
-
+// Component
 export const Socket: _.Component = (opts) => {
   const logger = App.logger!("socket");
 
@@ -42,6 +43,9 @@ export const Socket: _.Component = (opts) => {
 
         socket.write(headers.join("\r\n"));
 
+        const user = new SocketUser(socket);
+        Room("/").join(user.id);
+
         socket.on("data", buffer => {
           const op = buffer[0] & 0b00001111;
           const lenByte = buffer[1] & 0b01111111;
@@ -49,7 +53,7 @@ export const Socket: _.Component = (opts) => {
           if (buffer.length > opts.maxSize)
             return socket.destroy();
           if (op === 0x8 || (buffer[0] & 0b10000000) === 0 || (buffer[1] & 0b10000000) === 0)
-            return socket.end();
+            return user.close("exit");
           if (op === 0x9)
             return socket.write(Buffer.from([0b10001010, 0]));
 
@@ -83,14 +87,39 @@ export const Socket: _.Component = (opts) => {
             for (let i = 0; i < data.length; i++)
               data[i] ^= mask[i%4];
 
-          const msg = data.toString("utf8");
-          logger.log(msg);
+          const msg = JSON.parse(data.toString("utf8"));
+          // Malformed message. This can happen on network errors.
+          if (msg.integrityShard != integrityShard || !msg.event || !msg.data)
+            return;
+          
+          if (msg.event == "socket:ping")
+            return user.onPing();
 
-          // TODO split message treatement and answering in seperate methods
-          const response = Buffer.from(msg);
-          const reply = Buffer.concat([ Buffer.from([0x81, response.length]), response ]);
+          // No handlers for queried event
+          if (!(msg.event in handlers))
+            return;
+          
+          for (const handler of handlers[msg.event])
+          {
+            handler({
+              from: user.id, data: msg.data,
 
-          socket.write(reply);
+              room: (name: string) => ({
+                join: () => Room(name).join(user.id),
+                emit: (event: string, data?: JsonObject) => Room(name).emit(user.id, event, data),
+                leave: () => Room(name).leave(user.id)
+              }),
+
+              to: (id: string) => ({
+                emit: (event: string, data: JsonObject = {}) => {
+                  if (!(id in sockets)) return;
+                  sockets[id].send(Payload(event, user.id, data));
+                }
+              }),
+
+              emit: (event: string, data?: JsonObject) => Room("/").emit(user.id, event, data)
+            });
+          }
         });
 
         socket.on("end", () => {

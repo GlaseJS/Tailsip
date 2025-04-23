@@ -11,7 +11,7 @@ export const Host = (opts) => {
         const timer = new Timer();
         let body = "";
         const headers = new Headers();
-        const end = (code, answer) => {
+        const log = (code, type) => {
             const methodColor = request.method == "GET" ?
                 $.green :
                 request.method == "POST" ?
@@ -24,16 +24,25 @@ export const Host = (opts) => {
                     code > 199 ?
                         $.green :
                         $.white;
+            const typeColor = type == "Void" ?
+                $.red :
+                type == "Json" ?
+                    $.magenta :
+                    $.blue;
             if (request.url) {
                 const pathLength = request.url.lastIndexOf("/") - request.url.indexOf("/") + 1;
-                logger.log(`${methodColor}${request.method}${$.reset} ${padRight(request.url, pathLength + 20).replace(/\//g, $.white + "/" + $.reset)}  ::  ${codeColor}${code}${$.reset}  (${timer})`);
+                logger.log(`${methodColor + request.method + $.reset}: ${padRight(request.url, pathLength + 20)}${type ? "  ::  " + typeColor + "$" + type.toLowerCase() + $.reset : ""}  ::  ${codeColor + code + $.reset}  ${$.italic}(${timer})${$.reset}`);
             }
+        };
+        const end = (code, answer, wrapperType) => {
+            log(code, wrapperType);
             response.statusCode = code;
             response.setHeaders(headers);
             return response.end(answer);
         };
         const resolve = (wrap) => {
             if (wrap.type == "File") {
+                log(200, "file");
                 headers.append("Cache-Control", opts.staticCachingDuration > 0 ?
                     `public, max-age=${opts.staticCachingDuration}` :
                     "no-cache");
@@ -48,24 +57,24 @@ export const Host = (opts) => {
                 headers.append("Cache-Control", opts.jsonCachingDuration > 0 ?
                     `public, max-age=${opts.jsonCachingDuration}` :
                     "no-cache");
-                end(200, wrap.resolve());
+                end(200, wrap.resolve(), wrap.type);
             }
             else if (wrap.type == "View") {
                 headers.append("Content-Type", "text/html");
                 headers.append("Cache-Control", opts.viewCachingDuration > 0 ?
                     `public, max-age=${opts.viewCachingDuration}` :
                     "no-cache");
-                end(200, wrap.resolve());
+                end(200, wrap.resolve(), wrap.type);
             }
             else if (wrap.type == "Text") {
                 headers.append("Content-Type", "text/plain");
                 headers.append("Cache-Control", opts.textCachingDuration > 0 ?
                     `public, max-age=${opts.textCachingDuration}` :
                     "no-cache");
-                end(200, wrap.resolve());
+                end(200, wrap.resolve(), wrap.type);
             }
             else {
-                end(404);
+                end(404, undefined, wrap.type);
             }
         };
         /**
@@ -132,12 +141,13 @@ export const Host = (opts) => {
         App.socket.host(server, {
             allowedOrigins
         });
-        console.log(`\n${$.cyan}      _______       _____ _       _____ _____ _____  
-     |__   __|/\\   |_   _| |     / ____|_   _|  __ \\ 
-        | |  /  \\    | | | |    | (___   | | | |__) |
-        | | / /\\ \\   | | | |     \\___ \\  | | |  ___/ 
-        | |/ ____ \\ _| |_| |____ ____) |_| |_| |     
-        |_/_/    \\_\\_____|______|_____/|_____|_|${$.reset}\n\n` +
-            `       >>> ${$.white}Server running on ${$.blue}${App.address}${$.reset} <<< \n`);
+        const spc = " ".repeat(10);
+        console.log(`\n${$.cyan}${spc} _______       _____ _       _____ _____ _____  
+${spc}|__   __|/\\   |_   _| |     / ____|_   _|  __ \\ 
+${spc}   | |  /  \\    | | | |    | (___   | | | |__) |
+${spc}   | | / /\\ \\   | | | |     \\___ \\  | | |  ___/ 
+${spc}   | |/ ____ \\ _| |_| |____ ____) |_| |_| |     
+${spc}   |_/_/    \\_\\_____|______|_____/|_____|_|${$.reset}\n
+${spc}  >>> ${$.white}Server running on ${$.blue}${App.address}${$.reset} <<< \n`);
     };
 };

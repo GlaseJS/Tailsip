@@ -1,5 +1,13 @@
 export const $ = {
     reset: "\x1b[0m",
+    bold: "\x1b[1m",
+    dim: "\x1b[2m",
+    italic: "\x1b[3m",
+    underline: "\x1b[4m",
+    overline: "\x1b[53m",
+    inverse: "\x1b[7m",
+    hidden: "\x1b[8m",
+    strikethrough: "\x1b[9m",
     black: "\x1b[30m",
     red: "\x1b[31m",
     green: "\x1b[32m",
@@ -8,6 +16,7 @@ export const $ = {
     magenta: "\x1b[35m",
     cyan: "\x1b[36m",
     white: "\x1b[37m",
+    gray: "\x1b[39m",
     bg: {
         black: "\x1b[40m",
         red: "\x1b[41m",
@@ -17,6 +26,7 @@ export const $ = {
         magenta: "\x1b[45m",
         cyan: "\x1b[46m",
         white: "\x1b[47m",
+        gray: "\x1b[49m"
     },
     regex: /\x1b\[[0-9;]*m/g,
     clear: (str) => str.replace($.regex, "")

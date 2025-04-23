@@ -1,5 +1,13 @@
 export declare const $: {
     reset: string;
+    bold: string;
+    dim: string;
+    italic: string;
+    underline: string;
+    overline: string;
+    inverse: string;
+    hidden: string;
+    strikethrough: string;
     black: string;
     red: string;
     green: string;
@@ -8,6 +16,7 @@ export declare const $: {
     magenta: string;
     cyan: string;
     white: string;
+    gray: string;
     bg: {
         black: string;
         red: string;
@@ -17,6 +26,7 @@ export declare const $: {
         magenta: string;
         cyan: string;
         white: string;
+        gray: string;
     };
     regex: RegExp;
     clear: (str: string) => string;

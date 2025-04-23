@@ -27,18 +27,25 @@ declare type APIHandler = (ctx: Context) => Promise<APIHandlerReturns>;
 
 
 
-declare type SocketEmitter = (event: string, data?: any) => void;
+declare type SocketEmitter = (event: string, data?: JsonObject) => void;
 declare type SocketHandlerArgs = {
+  from: string,
+  data: JsonObject,
+
   /** Emit an event in the general room **/
   emit: SocketEmitter,
   /**  **/
   to: (socket: string) => { emit: SocketEmitter },
-  room: (name: string) => { join: () => void, emit: SocketEmitter }
+  room: (name: string) => {
+    join: () => void,
+    emit: SocketEmitter,
+    leave: () => void
+  }
 }
 declare type SocketHandlerReturns = {
-  [event: string]: (from: string, data: any) => any;
+  [event: string]: (ctx: SocketHandlerArgs) => any;
 }
-declare type SocketHandler = (ctx: SocketHandlerArgs) => SocketHandlerReturns;
+declare type SocketHandler = SocketHandlerReturns;
 
 
 
