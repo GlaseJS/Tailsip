@@ -2,7 +2,8 @@
 import { ClientWrapper } from "../../libs/clientWrapper.js";
 import { integrityShard } from "./payload.js";
 
-export const client = (address: string) => ClientWrapper(($tsr) => {
+let _client: string;
+export const client = (address: string) => _client ??= ClientWrapper(($tsr) => {
     const integrityShard = "$tsr.integrityShard";
     const socket = new WebSocket("ws://$tsr.address");
 

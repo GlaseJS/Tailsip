@@ -1,6 +1,7 @@
 import { ClientWrapper } from "../../libs/clientWrapper.js";
 import { integrityShard } from "./payload.js";
-export const client = (address) => ClientWrapper(($tsr) => {
+let _client;
+export const client = (address) => _client ??= ClientWrapper(($tsr) => {
     const integrityShard = "$tsr.integrityShard";
     const socket = new WebSocket("ws://$tsr.address");
     const send = (event, data = {}) => socket.send(JSON.stringify({

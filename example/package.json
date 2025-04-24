@@ -9,10 +9,11 @@
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
   },
+  "scripts": {
+    "start": "npx tailsip",
+    "dev": "npx tailsip-dev"
+  },
   "dependencies": {
     "tailsip": "file:../package"
-  },
-  "scripts": {
-    "start": "npx tailsip"
   }
 }

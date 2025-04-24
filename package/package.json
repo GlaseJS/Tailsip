@@ -10,6 +10,7 @@
     "typescript": "^5.7.2"
   },
   "bin": {
-    "tailsip": "./build/index.js"
+    "tailsip": "./build/index.js",
+    "tailsip-dev": "./build/watch.js"
   }
 }

@@ -15,11 +15,14 @@ export const style: StyleHandler = (ctx) => `
 
 $>.name {
   margin: 0 auto;
+  width: fit-content;
 }
 
 $>.name>span {
   display: block;
   font-family: "Roboto Mono", mono, monospace;
+  white-space: pre;
+  line-height: 1.2;
 }
 
 `
