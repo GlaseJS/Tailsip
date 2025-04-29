@@ -2,7 +2,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { obfuscate } from "../libs/obfuscate.js";
 
-import { InternalRoute, routes, splats } from "./compiler.js";
+import { components, InternalComponent, InternalRoute, routes, splats } from "./compiler.js";
 
 const GetRoute = (path: string) => {
   let route = path;
@@ -42,7 +42,6 @@ export class Context
     const { query, route } = GetRoute(this.pathname);
     this.query = query;
     this.route = route;
-    if (route in routes) this.routeModule = routes[route];
   }
 
   public url: URL;
@@ -59,14 +58,43 @@ export class Context
 
   public route: string;
   public query: { [x: string]: string };
-  public routeModule?: InternalRoute;
 
-  public data = {};
+  public data: {[x: string]: any} = {};
 
   private componentsCount = 0;
   public GenerateElementId = () => `${obfuscate(this.componentsCount++)}`;
 
-  public getRoute = () => routes[this.route];
+  public getRoute = () => {
+    if (this.route in routes) return routes[this.route] as InternalRoute;
+    else if (this.route in components) return components[this.route] as InternalComponent;
+  }
+
+  public bundled: { css: string[], js: string[] } = { css: [], js: [] };
+
+  /**
+   * Fetches a component and instantiate it.
+   * A bundled component is automatically attached to the route resolution system, meanining this component
+   * likely has only a few instances variations possible.
+   * On the opposite, and unbundled component will have its js and css resolved independently.
+   */
+  public Components = (path: string, bundled: boolean = true) => {
+    const route = path;
+    if (!(route in components))
+    {
+      App.logger!("ctx").log(`Attempting to render an inexisting component  ::  ${route}`);
+      return "";
+    }
+    const md = components[route];
+    return md.view?.[0](this, () => "", bundled);
+  }
+
+  public [Symbol.dispose]()
+  {
+    // Purge potentially large objects early.
+    delete this.body;
+    this.data = {};
+    this.query = {};
+  }
 }
 
 declare global {

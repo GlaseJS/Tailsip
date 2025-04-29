@@ -1,28 +1,50 @@
-export const view: ViewHandler = ({}, next) => `
-<div>
-  <div class="name">
-    <span>__  __  _____   __    _   _     __   _   ___   __  __ </span>
-    <span>\\ \\ \\ \\  | |   / /\\  | | | |   ( (\` | | | |_) / / / / </span>
-    <span>/_/ /_/  |_|  /_/--\\ |_| |_|__ _)_) |_| |_|   \\_\\ \\_\\ </span>
-    <span></span>
+/**
+ * Loaders are used for server-side code on GET-requests.
+ * A loader can either return:
+ * - void: The loader is successfull, the page rendering can continue (View system)
+ * - json: The loader is successfull, and data has to be returned (API style)
+ *
+ * Loaders are chained, meaning loaders from previous matching routes are ran first.
+ */
+export const loader: APIHandler = async (ctx) => {
+  ctx.data.user = { username: "johndoe" };
+}
+
+export const view: ViewHandler = ({ data, Components }, next) => `
+<div class="page">
+  <div>
+     <span class="offset offseta">${ Components("/logo", false) }</span>
+     <span class="offset offsetb">${ Components("/logo", false) }</span>
+     <span>${ Components("/logo", false) }</span>
   </div>
+  <div> Hello <span class="username">${data.user.username}</span></div>
 </div>
 `;
 
 export const style: StyleHandler = (ctx) => `
 
-
-
-$>.name {
-  margin: 0 auto;
-  width: fit-content;
+$ .offset {
+  position: absolute;
 }
 
-$>.name>span {
-  display: block;
-  font-family: "Roboto Mono", mono, monospace;
-  white-space: pre;
-  line-height: 1.2;
+$ .offseta {
+  margin: 0 0 1px 0;
+  color: #0000ff;
+}
+
+$ .offsetb {
+  margin: 0 0 -1px 0;
+  color: #ff0000;
+}
+
+$.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+$.page>* {
+  width: fit-content;
 }
 
 `

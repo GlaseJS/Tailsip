@@ -20,7 +20,7 @@ body {
   font-family: "Roboto";
 }
 
-$> {
+$ {
   background-color: #111115;
   min-height: 100vh;
 

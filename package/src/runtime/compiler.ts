@@ -3,6 +3,8 @@ import fs from "node:fs";
 import type { Context } from "./context.js";
 
 export type InternalRoute = ReturnType<typeof Register.Route>;
+export type InternalComponent = ReturnType<typeof Register.Component>;
+
 
 export const splats: {
   name: string,
@@ -18,12 +20,20 @@ export const sockets : {
 /** Defines wrappers for certain user provided methods */
 const Register = ({
   View: (route: string, md: ComponentModule) => ({
-    view: [(ctx: Context, next: () => string) =>
+    view: [(ctx: Context, next: () => string, bundled: boolean = true) =>
     {
       const id = ctx.GenerateElementId();
 
-      if (md.style)  ctx.meta.push({ type: "link", rel: "stylesheet", href: md.scoped ? `${route}.css?id=${id}` : `${route}.css` });
-      if (md.client) ctx.meta.push({ type: "script", src: md.scoped ? `${route}.js?id=${id}` : `${route}.js` });
+      if (md.style && !bundled)
+        ctx.meta.push({ type: "link", rel: "stylesheet", href: md.scoped ? `${route}.css?id=${id}` : `${route}.css` });
+      else if (md.style)
+        ctx.bundled.css.push(md.scoped ? `${route}.css?id=${id}` : `${route}.css`);
+      
+      if (md.client && !bundled)
+        ctx.meta.push({ type: "script", src: md.scoped ? `${route}.js?id=${id}` : `${route}.js` });
+      else if (md.client)
+        ctx.bundled.js.push(md.scoped ? `${route}.js?id=${id}` : `${route}.js`);
+      
       return md.view?.(ctx, next).replace(">", ` id="id${id}">`) || "";
     }],
     client: md.client ?
@@ -32,7 +42,7 @@ const Register = ({
         undefined,
     style: md.style ?
       (id: string) => md.scoped ?
-        (ctx: Context) => md.style!(ctx).replace(/\$>([a-zA-Z0-9 .>#]*[\{\,])/gm, (_, line) => `#id${id} ${line}`) :
+        (ctx: Context) => md.style!(ctx).replace(/\$([a-zA-Z0-9 .>#*]*[\{\,])/gm, (_, line) => `#id${id}${line}`) :
         md.style : undefined
   }),
   Route: (route: string, md: RouteModule) => ({
@@ -64,8 +74,8 @@ const Compile = async (folder: string, route: string, opts: {
     let base = file.endsWith(".js") ? file.slice(0, -3) : file;
     if (base == "index") base = "";
 
-    const componentRegex = fullPath.match(/^(.*)\.?components?$/);
-    const isComponent = !!componentRegex || opts.isComponents;
+    const componentRegex = fullPath.match(/([a-zA-Z]*)\.?components?/);
+    const isComponent = !!componentRegex;
     base = componentRegex?.[1] || base;
 
     const isSplat = base.startsWith('$');
@@ -109,13 +119,14 @@ const Compile = async (folder: string, route: string, opts: {
     }
     else
     {
-      if (opts.mode == "Routes") continue;
+      if (opts.mode == "Routes" || !isComponent) continue;
+
       const md = {
         ...await import(`file://${process.cwd()}/${fullPath}`) as ComponentModule
       };
       if (typeof md.scoped == "undefined") md.scoped = true;
 
-      components[base] = Register.Component(fullRoute, md);
+      components[fullRoute] = Register.Component(fullRoute, md);
     }
   }
 }

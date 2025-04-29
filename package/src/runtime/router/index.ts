@@ -1,8 +1,9 @@
 
 
 
+import { obfuscate } from "../../libs/obfuscate.js";
 import { Router as _ } from "../../options/index.js";
-import { usesSockets } from "../compiler.js";
+import { InternalComponent, InternalRoute, usesSockets } from "../compiler.js";
 import { Context } from "../context.js";
 
 import { client } from "./client.js";
@@ -10,16 +11,34 @@ import { reset } from "./reset.js";
 
 import fs from "node:fs";
 
+const bundled: {
+  [id: string]: {
+    md: InternalRoute | InternalComponent,
+    metas: string[],
+    css?: string, js?: string
+  }
+} = {};
+
+let bundleCount = 0;
+const getBundleId = (metas: string[], md: InternalRoute | InternalComponent) => {
+  const id = `bd${obfuscate(bundleCount++)}`;
+  if (id in bundled) return id;
+
+  bundled[id] = {
+    md, metas
+  };
+}
+
 export const Router: _.Component = (opts) => {
   const logger = App.logger!("router");
       
 
   return ({
     GET: async (req) => {
-      const ctx = new Context(...req);
+      using ctx = new Context(...req);
       let finalView = "";
 
-      const route = ctx.getRoute();
+      const route = ctx.getRoute() as InternalRoute;
       if (!route) return $void; //404
       for (const loader of route.loader)
       {
@@ -64,20 +83,21 @@ export const Router: _.Component = (opts) => {
     },
 
     FILE: async (req) => {
-      const ctx = new Context(...req);
+      using ctx = new Context(...req);
       if (!ctx.fileType) return $void; // We don't wrap when the request isn't a file.
 
+      const routeModule = ctx.getRoute();
       // Serve style and client methods
       if (ctx.fileType == "css" && ctx.route == "/reset")
         return $text(reset);
-      if (ctx.fileType == "css" && ctx.routeModule?.style)
-        return $text(ctx.routeModule.style(ctx.id)!(ctx));
+      if (ctx.fileType == "css" && routeModule?.style)
+        return $text(routeModule.style(ctx.id)!(ctx));
       else if (ctx.fileType == "js" && ctx.route == "/main")
         return $text(client);
       else if (usesSockets && ctx.fileType == "js" && ctx.route == "/socket" && App.socket)
         return $text(App.socket!.client());
-      else if (ctx.fileType == "js" && ctx.routeModule?.client)
-        return $text(`$(${ctx.routeModule.client(ctx.id)});`);
+      else if (ctx.fileType == "js" && routeModule?.client)
+        return $text(`$(${routeModule.client(ctx.id)});`);
 
       // Serve static files
       const file = `${Config.tailsip.staticFolder}/${ctx.url.pathname}`;
@@ -87,10 +107,10 @@ export const Router: _.Component = (opts) => {
     },
 
     POST: async (req) => {
-      const ctx = new Context(...req);
+      using ctx = new Context(...req);
 
       let actionError: ErrorHandler<APIHandler> = (err) => async () => logger.error(err);
-      const route = ctx.routeModule;
+      const route = ctx.getRoute() as InternalRoute;
 
       if (!route) return $void;
 

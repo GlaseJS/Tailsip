@@ -1,5 +1,5 @@
 import { obfuscate } from "../libs/obfuscate.js";
-import { routes, splats } from "./compiler.js";
+import { components, routes, splats } from "./compiler.js";
 const GetRoute = (path) => {
     let route = path;
     const query = {};
@@ -33,8 +33,6 @@ export class Context {
         const { query, route } = GetRoute(this.pathname);
         this.query = query;
         this.route = route;
-        if (route in routes)
-            this.routeModule = routes[route];
     }
     url;
     title = "";
@@ -46,9 +44,34 @@ export class Context {
     params;
     route;
     query;
-    routeModule;
     data = {};
     componentsCount = 0;
     GenerateElementId = () => `${obfuscate(this.componentsCount++)}`;
-    getRoute = () => routes[this.route];
+    getRoute = () => {
+        if (this.route in routes)
+            return routes[this.route];
+        else if (this.route in components)
+            return components[this.route];
+    };
+    /**
+     * Fetches a component and instantiate it.
+     * A bundled component is automatically attached to the route resolution system, meanining this component
+     * likely has only a few instances variations possible.
+     * On the opposite, and unbundled component will have its js and css resolved independently.
+     */
+    Components = (path, bundled = true) => {
+        const route = path;
+        if (!(route in components)) {
+            App.logger("ctx").log(`Attempting to render an inexisting component  ::  ${route}`);
+            return "";
+        }
+        const md = components[route];
+        return md.view?.[0](this, () => "");
+    };
+    [Symbol.dispose]() {
+        // Purge potentially large objects early.
+        delete this.body;
+        this.data = {};
+        this.query = {};
+    }
 }

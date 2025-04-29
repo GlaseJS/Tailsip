@@ -1,12 +1,14 @@
 #!/usr/bin/env node
-import { existsSync, watch } from "fs";
-import { exec } from "node:child_process";
-const debounce = (fn, delay) => {
-    let timeout;
-    return () => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => fn(), delay);
-    };
+import { existsSync, watch as createWatch } from "fs";
+import { exec, execFile } from "node:child_process";
+let timeouts = [null, null];
+const debounce = (callback, ms, timeoutId) => () => {
+    if (timeouts[timeoutId])
+        return;
+    timeouts[timeoutId] = setTimeout(() => {
+        timeouts[timeoutId] = null;
+        callback();
+    }, ms);
 };
 let subprocess;
 const spawnOptions = { stdio: "inherit", cwd: process.cwd(), env: process.env };
@@ -15,31 +17,43 @@ const getBin = (cmd) => {
     return existsSync(local) ? local : cmd;
 };
 const tsc = getBin("tsc");
-const tailsip = getBin("tailsip");
-const restart = debounce(() => {
-    if (subprocess) {
-        subprocess.kill();
+const end = () => new Promise((resolve) => {
+    if (!subprocess)
+        return resolve();
+    console.log(`tailsip-dev> Closing.`);
+    subprocess.once("exit", () => {
+        subprocess?.stdout?.unpipe(process.stdout);
         subprocess = null;
-    }
-    console.log(`tailsip-dev> Rebuilding...`);
-    const build = exec(tsc, spawnOptions);
-    build.on("exit", (code) => {
-        if (code != 0)
-            return;
-        console.log(`tailsip-dev> Starting server.`);
-        subprocess = exec(tailsip, spawnOptions);
-        subprocess.stdout?.pipe(process.stdout);
+        resolve();
     });
-}, 150);
-process.on("beforeExit", () => {
-    subprocess?.kill();
+    subprocess.kill("SIGKILL");
 });
-watch(process.cwd(), { recursive: true }, (_, filename) => {
+const watch = createWatch(process.cwd(), { recursive: true }, (_, filename) => {
     if (!filename)
         return;
-    if (filename.startsWith("build"))
+    if (filename.startsWith("build") ||
+        filename.startsWith("node_modules") ||
+        filename.startsWith("public"))
         return;
-    console.log(filename);
     restart();
 });
+let restarting = false;
+const restart = debounce(async () => {
+    if (restarting)
+        return;
+    restarting = true;
+    await end();
+    console.log(`tailsip-dev> Building...`);
+    debounce(() => {
+        const build = exec(tsc, spawnOptions);
+        build.on("exit", (code) => {
+            subprocess = execFile("node", [`${process.cwd()}/node_modules/tailsip/build/server.js`], (err, stdout, stderr) => {
+                console.log(stdout);
+            });
+            subprocess.stdout?.pipe(process.stdout);
+            restarting = false;
+        });
+    }, 200, 1)();
+}, 200, 0);
+process.on("exit", () => end());
 restart();

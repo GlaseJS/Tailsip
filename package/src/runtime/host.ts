@@ -180,9 +180,9 @@ export const Host: _.Component = (opts) => {
   
 
   return () => {
-    process.on("exit", () => {
-      server.close();
-    });
+    server.on("error", (e) => {
+      console.log(e);
+    })
     server.listen(opts.port);
 
     let { address, port } = server.address() as { address: string, port: number };
@@ -204,6 +204,13 @@ ${spc}   | |/ ____ \\ _| |_| |____ ____) |_| |_| |
 ${spc}   |_/_/    \\_\\_____|______|_____/|_____|_|${$.reset}\n
 ${spc}  >>> ${$.white}Server running on ${$.blue}${App.address}${$.reset} <<< \n`
     );
+
+    const end = () => {
+      logger.log(`Stopping host`);
+      server.close();
+    }
+
+    process.on("exit", () => end());
   }
 }
 

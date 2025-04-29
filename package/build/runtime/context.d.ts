@@ -1,5 +1,4 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { InternalRoute } from "./compiler.js";
 export declare class Context {
     request: IncomingMessage;
     response: ServerResponse;
@@ -18,28 +17,25 @@ export declare class Context {
     query: {
         [x: string]: string;
     };
-    routeModule?: InternalRoute;
-    data: {};
+    data: {
+        [x: string]: any;
+    };
     private componentsCount;
     GenerateElementId: () => string;
     getRoute: () => {
-        loader: APIHandler[];
         view: ((ctx: Context, next: () => string) => string)[];
         client: ((id: string) => string) | undefined;
         style: ((id: string) => StyleHandler | undefined) | undefined;
-        type: "Route";
-        action?: APIHandler;
-        socket?: SocketHandler;
         scoped?: boolean;
-        error?: {
-            $?: ErrorHandler<APIHandler>;
-            loader?: ErrorHandler<APIHandler>;
-            action?: ErrorHandler<APIHandler>;
-            view?: ErrorHandler<ViewHandler>;
-        };
-        _splatName: string;
-        _splatValue?: string;
-    };
+    } | undefined;
+    /**
+     * Fetches a component and instantiate it.
+     * A bundled component is automatically attached to the route resolution system, meanining this component
+     * likely has only a few instances variations possible.
+     * On the opposite, and unbundled component will have its js and css resolved independently.
+     */
+    Components: (path: string, bundled?: boolean) => string | undefined;
+    [Symbol.dispose](): void;
 }
 declare global {
     type Context = InstanceType<typeof Context>;

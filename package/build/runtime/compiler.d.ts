@@ -1,5 +1,6 @@
 import type { Context } from "./context.js";
 export type InternalRoute = ReturnType<typeof Register.Route>;
+export type InternalComponent = ReturnType<typeof Register.Component>;
 export declare const splats: {
     name: string;
     pattern: string;

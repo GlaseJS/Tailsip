@@ -6,3 +6,4 @@
 export interface App {};
 export interface Config{};
 export interface Overrides{};
+export interface Context{};

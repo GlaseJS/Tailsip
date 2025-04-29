@@ -19,7 +19,7 @@ const Register = ({
             undefined,
         style: md.style ?
             (id) => md.scoped ?
-                (ctx) => md.style(ctx).replace(/\$>([a-zA-Z0-9 .>#]*[\{\,])/gm, (_, line) => `#id${id} ${line}`) :
+                (ctx) => md.style(ctx).replace(/\$([a-zA-Z0-9 .>#*]*[\{\,])/gm, (_, line) => `#id${id}${line}`) :
                 md.style : undefined
     }),
     Route: (route, md) => ({
@@ -44,8 +44,8 @@ const Compile = async (folder, route, opts) => {
         let base = file.endsWith(".js") ? file.slice(0, -3) : file;
         if (base == "index")
             base = "";
-        const componentRegex = fullPath.match(/^(.*)\.?components?$/);
-        const isComponent = !!componentRegex || opts.isComponents;
+        const componentRegex = fullPath.match(/([a-zA-Z]*)\.?components?/);
+        const isComponent = !!componentRegex;
         base = componentRegex?.[1] || base;
         const isSplat = base.startsWith('$');
         let splatName = "";
@@ -88,14 +88,14 @@ const Compile = async (folder, route, opts) => {
             }
         }
         else {
-            if (opts.mode == "Routes")
+            if (opts.mode == "Routes" || !isComponent)
                 continue;
             const md = {
                 ...await import(`file://${process.cwd()}/${fullPath}`)
             };
             if (typeof md.scoped == "undefined")
                 md.scoped = true;
-            components[base] = Register.Component(fullRoute, md);
+            components[fullRoute] = Register.Component(fullRoute, md);
         }
     }
 };
