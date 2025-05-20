@@ -10,8 +10,8 @@
     "typescript": "^5.7.2"
   },
   "bin": {
-    "tailsip": "./build/server.js",
-    "tailsip-dev": "./build/watch.js"
+    "tailsip": "./build/Server.js",
+    "tailsip-dev": "./build/Watch.js"
   },
   "dependencies": {
     "tailsip": "file:"
