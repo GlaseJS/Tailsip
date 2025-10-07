@@ -6,12 +6,13 @@
   "license": "MIT",
   "devDependencies": {
     "ts-node": "^10.9.2",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "tsc": "^2.0.4",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   },
   "bin": {
-    "tailsip": "./build/Server.js",
-    "tailsip-dev": "./build/Watch.js"
+    "tailsip": "./build/server.js",
+    "tailsip-dev": "./build/watch.js"
   },
   "dependencies": {
     "tailsip": "file:"

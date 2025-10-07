@@ -3,13 +3,13 @@
     "build"
   ],
   "include": [
-    "src/**/*.ts",
+    "app/**/*.ts",
     "node_modules/tailsip/**/*.d.ts"
   ],
   "compilerOptions": {
     "module": "NodeNext",
     "outDir": "build",
-    "rootDir": "src",
+    "rootDir": "app",
     "strict": true,
 
     "target": "ES2022",
@@ -23,7 +23,7 @@
     "allowArbitraryExtensions": true,
 
     "typeRoots": [
-      "node_modules/tailsip/types"
+      "node_modules/@types", "node_modules/tailsip/types"
     ]
   }
 }
